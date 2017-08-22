@@ -210,3 +210,32 @@ static public class Messenger
 		}
 	}
 }
+
+/// <summary>
+/// 类名 : 消息 常量
+/// 作者 : canyon / 龚阳辉
+/// 日期 : 2017-08-16 13:57
+/// 功能 : 
+/// </summary>
+public partial class MsgConst{
+	// 暂停 (无参数)
+	public const string OnPause = "Msg_OnPause";
+
+	// 恢复 (无参数)
+	public const string OnResume = "Msg_OnResume";
+
+	// 开始 (无参数)
+	public const string OnStart = "Msg_OnStart";
+
+	// 更新 (无参数)
+	public const string OnUpdate = "Msg_OnUpdate";
+
+	// 结束 (无参数)
+	public const string OnEnd = "Msg_OnEnd";
+
+	// 更新(一个参数:[delta or time.realtimeSinceStartup]
+	public const string OnUpdateTime1 = "Msg_OnUpdateTime1";
+
+	// 更新(两个参数:[delta,progress or time.realtimeSinceStartup]
+	public const string OnUpdateTime2 = "Msg_OnUpdateTime2";
+}
