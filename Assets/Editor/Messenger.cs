@@ -224,7 +224,7 @@ public partial class MsgConst{
 	// 恢复 (无参数)
 	public const string OnResume = "Msg_OnResume";
 
-	// 开始 (无参数)
+	// 开始 (0~N参数)
 	public const string OnStart = "Msg_OnStart";
 
 	// 更新 (无参数)
@@ -232,6 +232,9 @@ public partial class MsgConst{
 
 	// 结束 (无参数)
 	public const string OnEnd = "Msg_OnEnd";
+
+	// 清除 (无参数)
+	public const string OnClear = "Msg_OnClear";
 
 	// 更新(一个参数:[delta or time.realtimeSinceStartup]
 	public const string OnUpdateTime1 = "Msg_OnUpdateTime1";
