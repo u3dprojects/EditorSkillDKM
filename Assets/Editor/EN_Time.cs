@@ -4,7 +4,7 @@ using System.Collections;
 /// <summary>
 /// 类名 : 时间
 /// 作者 : Canyon
-/// 日期 : 2017-01-05 17:10
+/// 日期 : 2017-08-15 09:10
 /// 功能 : 
 /// </summary>
 public class EN_Time  {
