@@ -114,6 +114,8 @@ public class EDW_Skill : EditorWindow
 		_DrawLeft();
 
 		// 中
+		_DrawMiddle();
+
 		// 右
 		_DrawRight();
     }
@@ -208,14 +210,15 @@ public class EDW_Skill : EditorWindow
 		};
 		int lens = m_cacheDatas.Count;
 		int contentHeight = lens * 40;
+		int scrollHeight = (height - curY - 40);
 
-		v2LeftScroll = GUI.BeginScrollView (CreateRect (ref curX, curY, leftWidth, (height - curY - 40)), v2LeftScroll, new Rect (10, curY, leftWidth - 20, contentHeight),false,false);
+		v2LeftScroll = GUI.BeginScrollView (CreateRect (ref curX, curY, leftWidth, scrollHeight), v2LeftScroll, new Rect (10, curY, leftWidth - 20, contentHeight),false,false);
 		NextLine (ref curX, ref curY, 0,20);
 		Rect cellRect,cellBtnDel;
 		string strTitle = "";
 		for (int i = 0; i < lens; i++) {
 			cellRect = new Rect(curX,curY,leftWidth - 30,30);
-			strTitle = string.Format("cell{0:000}",i);
+			strTitle = string.Format("Role{0:000}",i);
 			EditorGUI.DrawRect (cellRect, (lastSelectId == m_cacheDatas [i]) ? m_lfCellSelColor : m_lfCellDefColor);
 
 			cellBtnDel = new Rect (curX + leftWidth - 30 - 42, curY, 40, 28);
@@ -255,9 +258,81 @@ public class EDW_Skill : EditorWindow
 	}
 	#endregion
 
+	#region == 绘制中间 ==
+	int m_midBtnWidth = 75;
+	Vector2 v2MidBtnScroll = Vector2.zero;
+	int lastSelectSkillId = -1;
+
+	void _DrawMiddle(){
+		int width = (int)(position.width - leftWidth - rightWidth - 40);
+		int initX = leftWidth + 20;
+		int initY = 10;
+		int height = (int)(position.height - initY - 10);
+
+		int curX = initX;
+		int curY = initY;
+		// EditorGUI.DrawRect (CreateRect (ref curX, curY, width, height), Color.gray);
+
+		NextLine (ref curX, ref curY, 5, initX + 2);
+		GUI.Label(CreateRect(ref curX,curY,width - 5),"拥有技能列表:");
+
+		// 测试数据
+		List<int> m_cacheDatas = new List<int> () {
+			1101,1102,1103,1104,1105,1106,1107,1108,1109,1110,
+			2101,2102,2103,2104,2105,2106,2107,2108,2109,2110,
+			3101,3102,3103,3104,3105,3106,3107,3108,3109,3110,
+		};
+
+		int lens = m_cacheDatas.Count;
+
+		int colunm = Mathf.FloorToInt ((float)width / m_midBtnWidth);
+		int row = Mathf.CeilToInt ((float)lens / colunm);
+
+		NextLine (ref curX, ref curY, 20, initX);
+		Rect scrollRect = new Rect (curX, curY, width, 150);
+		Rect contentRect = new Rect (curX, curY, width - 20, row * 30);
+
+		v2MidBtnScroll = GUI.BeginScrollView (scrollRect, v2MidBtnScroll,contentRect,false,false);
+
+		int curBtnX = curX;
+		int curBtnY = curY;
+		Rect cellRect;
+		int skillID = -1;
+		for (int i = 0; i < lens; i++) {
+			if (i > 0 && i % colunm == 0) {
+				NextLine (ref curBtnX, ref curBtnY, 30,initX);
+			}
+
+			skillID = m_cacheDatas [i];
+			cellRect = CreateRect(ref curBtnX,curBtnY,70,25);
+			if (lastSelectSkillId == skillID) {
+				cellRect.y -= 2;
+				cellRect.height += 5;
+				EditorGUI.DrawRect (cellRect, Color.magenta);
+				cellRect.y += 2;
+				cellRect.height -= 5;
+			}
+
+			if(GUI.Button(cellRect,GetSkillName(skillID))){
+				lastSelectSkillId = skillID;
+				Debug.Log ("Click " + skillID);
+			}
+		}
+		GUI.EndScrollView ();
+
+		// 绘制时间线
+		NextLine (ref curX, ref curY, 152, initX);
+		GUI.Label(CreateRect(ref curX,curY,width - 5),"技能-时间线:");
+	}
+
+	string GetSkillName(int skillID){
+		return skillID.ToString ();
+	}
+	#endregion
+
 	#region == 绘制右边 ==
 	int m_rtBarIndex = 0;
-	string[] m_rtBarTitles = { "bar1", "bar2", "bar3", "bar4" };
+	string[] m_rtBarTitles = { "技能表", "bar2", "bar3", "bar4" };
 
 	void _DrawRight(){
 		int initX = (int)(position.width - rightWidth - 10);
