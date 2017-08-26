@@ -16,7 +16,7 @@ public class EDW_Skill : EditorWindow
     static protected EDW_Skill vwWindow = null;
 
 	static int leftWidth = 200;
-	static int midMinWidth = 200;
+	static int midMinWidth = 300;
 	static int rightWidth = 220;
 
     // 窗体宽高
@@ -262,6 +262,7 @@ public class EDW_Skill : EditorWindow
 	int m_midBtnWidth = 75;
 	Vector2 v2MidBtnScroll = Vector2.zero;
 	int lastSelectSkillId = -1;
+	EG_SkillTimeLine timeLine = new EG_SkillTimeLine ();
 
 	void _DrawMiddle(){
 		int width = (int)(position.width - leftWidth - rightWidth - 40);
@@ -322,7 +323,7 @@ public class EDW_Skill : EditorWindow
 
 		// 绘制时间线
 		NextLine (ref curX, ref curY, 152, initX);
-		GUI.Label(CreateRect(ref curX,curY,width - 5),"技能-时间线:");
+		timeLine.DrawView (ref curX, ref curY, width, height + initY - curY);
 	}
 
 	string GetSkillName(int skillID){
