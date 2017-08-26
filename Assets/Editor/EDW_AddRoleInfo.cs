@@ -126,6 +126,7 @@ public class EDW_AddRoleInfo : EditorWindow
 	}
 
 	void SaveOrAdd(){
+		m_data.m_id = m_id;
 		MgrRoleDatas.instance.AddInfo (m_data);
 	}
 

@@ -106,8 +106,10 @@ public class MgrRoleDatas{
 		FileInfo fileInfo = new FileInfo (path);
 		if (fileInfo.Exists) {
 			m_data = AssetDatabase.LoadAssetAtPath<ED_RoleData> (path);
+			// AssetDatabase.DeleteAsset (path);
 		} else {
 			m_data = ScriptableObject.CreateInstance<ED_RoleData> ();
+			AssetDatabase.CreateAsset (m_data, path);
 		}
 
 		foreach (var item in m_data.m_map) {
@@ -150,12 +152,7 @@ public class MgrRoleDatas{
 	}
 
 	public void Save(){
-		FileInfo fileInfo = new FileInfo (path);
-		if (fileInfo.Exists) {
-			// fileInfo.Delete ();
-		}
-
-		AssetDatabase.CreateAsset (m_data, path);
+		AssetDatabase.SaveAssets ();
 		AssetDatabase.Refresh ();
 	}
 

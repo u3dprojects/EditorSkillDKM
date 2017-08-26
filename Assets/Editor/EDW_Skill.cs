@@ -255,6 +255,7 @@ public class EDW_Skill : EditorWindow
 	}
 
 	void OpenChangeRoleInfo(int id){
+		EDW_AddRoleInfo.AddWindow ().Init (id);
 	}
 	#endregion
 
