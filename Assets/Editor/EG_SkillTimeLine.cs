@@ -155,6 +155,9 @@ public class EG_SkillTimeLine{
 		Rect scrollRect = new Rect (curX, curY, nWidth - 40, scrollH);
 		Rect contentRect = new Rect (curX, curY, contentWidth, lineHeight);
 
+		if (isStartAct)
+			CalcScrollPos ();
+		
 		v2ScrollPos = GUI.BeginScrollView (scrollRect, v2ScrollPos, contentRect, false, false);
 		lineStartX = curX + 5;
 		lineStartY = curY;
@@ -283,5 +286,12 @@ public class EG_SkillTimeLine{
 		}
 
 		return ret;
+	}
+
+	/// <summary>
+	/// 计算滚动时间线的滚动位置
+	/// </summary>
+	void CalcScrollPos(){
+		v2ScrollPos.x = (EDT_Line.curFrame - 1) * (contentWidth - nWidth + 20) / numCell;
 	}
 }
