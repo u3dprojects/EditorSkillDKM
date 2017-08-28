@@ -46,3 +46,6 @@ sysinfo.txt
 /Assets/Lua/.buildpath
 /Assets/Lua/.project
 /Assets/Lua/.settings/
+
+# 新增自定义忽略文件
+dRoleInfo.*
