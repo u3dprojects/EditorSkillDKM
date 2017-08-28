@@ -229,8 +229,11 @@ public class EDW_Skill : EditorWindow
 			if (Event.current.type == EventType.MouseUp) {
 				Vector2 mousePos = Event.current.mousePosition;
 				if (!cellBtnDel.Contains(mousePos) && cellRect.Contains (mousePos)) {
+					if (lastSelectId == m_cacheDatas [i]) {
+						OpenChangeRoleInfo (lastSelectId);
+					}
+
 					lastSelectId = m_cacheDatas [i];
-					OpenChangeRoleInfo (lastSelectId);
 					Debug.Log ("Click " + strTitle);
 				}
 			}
