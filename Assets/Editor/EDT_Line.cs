@@ -106,3 +106,55 @@ public class SortEDT_Line<T> : IComparer<T> where T:EDT_Line{
 		return 0;
 	}
 }
+
+/// <summary>
+/// 类名 : 时间线 - CGCamera动画
+/// 作者 : Canyon
+/// 日期 : 2017-08-18 10:30
+/// 功能 : 
+/// </summary>
+public class EDT_CGCamera : EDT_Line{
+	/// <summary>
+	/// 水平旋转角度
+	/// </summary>
+	public float m_angleHorizontal = 0;
+
+	/// <summary>
+	/// 垂直旋转角度
+	/// </summary>
+	public float m_angleVertical = 0;
+
+	/// <summary>
+	/// 距离
+	/// </summary>
+	public float m_distance = 0;
+
+	/// <summary>
+	/// 视角Y的偏移量
+	/// </summary>
+	public float m_offsetY = 0;
+
+	/// <summary>
+	/// 摄像机视野大小
+	/// </summary>
+	public float m_fov = 60;
+
+	/// <summary>
+	/// 核心计算方法
+	/// </summary>
+	public void Calc(Transform trsfCamera,Vector3 cameraTargetPos){
+
+		float fPitch = m_angleVertical * Mathf.PI / 180f;
+		float fYaw = m_angleHorizontal * Mathf.PI / 180f;
+
+		Vector3 vPos = cameraTargetPos;
+		vPos.x += m_distance * Mathf.Sin (fPitch) * Mathf.Cos (fYaw);
+		vPos.y += m_distance * Mathf.Cos (fPitch) + m_offsetY;
+		vPos.z += m_distance * Mathf.Sin (fPitch) * Mathf.Sin (fYaw);
+
+		trsfCamera.position = vPos;
+
+		cameraTargetPos.y += m_offsetY;
+		trsfCamera.LookAt (cameraTargetPos);
+	}
+}
