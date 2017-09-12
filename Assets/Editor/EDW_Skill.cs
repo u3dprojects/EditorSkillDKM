@@ -163,7 +163,7 @@ public class EDW_Skill : EditorWindow
 	/// <summary>
 	/// 创建当前行对象的位置
 	/// </summary>
-	Rect CreateRect(ref int nX,int nY,int nWidth,int nHeight = 20){
+	static public Rect CreateRect(ref int nX,int nY,int nWidth,int nHeight = 20){
 		Rect rect = new Rect (nX, nY, nWidth, nHeight);
 		nX += nWidth + 5;
 		return rect;
@@ -172,7 +172,7 @@ public class EDW_Skill : EditorWindow
 	/// <summary>
 	/// 设置下一行的开始位置
 	/// </summary>
-	void NextLine(ref int nX,ref int nY,int addHeight = 30,int resetX = 10){
+	static public void NextLine(ref int nX,ref int nY,int addHeight = 30,int resetX = 10){
 		nX = resetX;
 		nY += addHeight;
 	}
@@ -337,7 +337,8 @@ public class EDW_Skill : EditorWindow
 
 	#region == 绘制右边 ==
 	int m_rtBarIndex = 0;
-	string[] m_rtBarTitles = { "技能表", "bar2", "bar3", "bar4" };
+	string[] m_rtBarTitles = { "技能表", "CGCamera", "bar3", "bar4" };
+	EG_SkillCGCamera m_cgCamera = new EG_SkillCGCamera();
 
 	void _DrawRight(){
 		int initX = (int)(position.width - rightWidth - 10);
@@ -350,6 +351,15 @@ public class EDW_Skill : EditorWindow
 
 		NextLine (ref curX, ref curY, 0, initX);
 		m_rtBarIndex = GUI.Toolbar (CreateRect (ref curX, curY, rightWidth, 30),m_rtBarIndex,m_rtBarTitles);
+
+		NextLine (ref curX, ref curY, 32, initX);
+		switch (m_rtBarIndex) {
+		case 1:
+			m_cgCamera.DrawView (ref curX, ref curY, rightWidth, height);
+			break;
+		default:
+			break;
+		}
 	}
 	#endregion
 }

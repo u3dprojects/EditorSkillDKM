@@ -11,7 +11,15 @@ using System.Collections.Generic;
 /// </summary>
 public class EG_SkillCGCamera{
 
-	#region 摄像机数据
+	public EG_SkillCGCamera(){
+		Messenger.AddListener(MsgConst.OnUpdate, OnUpdate);
+	}
+
+	~EG_SkillCGCamera(){
+		Messenger.RemoveListener(MsgConst.OnUpdate, OnUpdate);
+	}
+
+	#region == 摄像机数据 ==
 	Transform _trsfCamera;
 	Camera m_camera;
 
@@ -40,18 +48,176 @@ public class EG_SkillCGCamera{
 	}
 	#endregion
 
+	#region === 绘制 ===
+	Rect CreateRect(ref int nX,int nY,int nWidth,int nHeight = 20){
+		Rect rect = new Rect (nX, nY, nWidth, nHeight);
+		nX += nWidth + 5;
+		return rect;
+	}
+
+	void NextLine(ref int nX,ref int nY,int addHeight = 30,int resetX = 10){
+		nX = resetX;
+		nY += addHeight;
+	}
+
+	// 初始数据
+	int nInitX = 0;
+	// int nInitY = 0;
+	int nWidth = 0;
+	// int nHeight = 0;
+
+	List<EDT_CGCamera> m_list = new List<EDT_CGCamera> ();
+
+	SortEDT_Line<EDT_CGCamera> m_sort = new SortEDT_Line<EDT_CGCamera> ();
+
+	bool isSetCGCamera = false;
+
+	bool isRunning = false;
+
+	EDT_CGCamera GetCGCameraByFrame(int frame){
+		int lens = m_list.Count;
+		for (int i = 0; i < lens; i++) {
+			if (m_list [i].m_frame == frame)
+				return m_list [i];
+		}
+		return null;
+	}
+
+	public void DrawView(ref int curX,ref int curY,int width,int height){
+		nInitX = curX;
+		// nInitY = curY;
+		nWidth = width;
+		// nHeight = height;
+
+		NextLine (ref curX, ref curY, 0, nInitX + 2);
+		GUI.Label (CreateRect (ref curX, curY, 60), "当前帧:");
+		int _curFame = EDT_Line.curFrame;
+		EDT_Line.curFrame = EditorGUI.IntField (CreateRect (ref curX, curY, 45), EDT_Line.curFrame);
+		if (_curFame != EDT_Line.curFrame) {
+			// 滚动到当前帧
+			// Messenger.Brocast(MsgConst.CurrFrame2TimeLineScrollPos);
+		}
+
+		if (GUI.Button (CreateRect (ref curX, curY, 90), "查询")) {
+			EDT_CGCamera data = GetCGCameraByFrame (EDT_Line.curFrame);
+			if (data != null) {
+				m_angleHorizontal = data.m_angleHorizontal;
+				m_angleVertical = data.m_angleVertical;
+				m_distance = data.m_distance;
+				m_offsetY = data.m_offsetY;
+				m_fov = data.m_fov;
+			}
+		}
+
+		NextLine (ref curX, ref curY, 30, nInitX + 2);
+		GUI.Label (CreateRect (ref curX, curY, 60), "变换镜头:");
+		isSetCGCamera = EditorGUI.Toggle (CreateRect (ref curX, curY, 150), isSetCGCamera);
+		if (isSetCGCamera) {
+			Calc (m_trsfCamera, cameraTargetPos);
+		}
+
+		NextLine (ref curX, ref curY, 30, nInitX + 2);
+		GUI.Label (CreateRect (ref curX, curY, 60), "目标对象:");
+		m_trsfCameraTarget = EditorGUI.ObjectField (CreateRect (ref curX, curY, 150),m_trsfCameraTarget,typeof(Transform),true) as Transform;
+
+		NextLine (ref curX, ref curY, 30, nInitX + 2);
+		GUI.Label (CreateRect (ref curX, curY, 60), "距离:");
+		m_distance = EditorGUI.Slider (CreateRect (ref curX, curY, 150), m_distance, 0.01f, 30);
+
+		NextLine (ref curX, ref curY, 30, nInitX + 2);
+		GUI.Label (CreateRect (ref curX, curY, 60), "视野:");
+		m_fov = EditorGUI.Slider (CreateRect (ref curX, curY, 150), m_fov, 1f, 179);
+
+		NextLine (ref curX, ref curY, 30, nInitX + 2);
+		GUI.Label (CreateRect (ref curX, curY, 60), "偏移Y:");
+		m_offsetY = EditorGUI.Slider (CreateRect (ref curX, curY, 150), m_offsetY, 0.1f, 50);
+
+		NextLine (ref curX, ref curY, 30, nInitX + 2);
+		GUI.Label (CreateRect (ref curX, curY, 60), "水平角度:");
+		m_angleHorizontal = EditorGUI.Slider (CreateRect (ref curX, curY, 150), m_angleHorizontal, 0, 360);
+
+		NextLine (ref curX, ref curY, 30, nInitX + 2);
+		GUI.Label (CreateRect (ref curX, curY, 60), "垂直角度:");
+		m_angleVertical = EditorGUI.Slider (CreateRect (ref curX, curY, 150), m_angleVertical, 0, 360);
+
+		NextLine (ref curX, ref curY, 30, nInitX + 2);
+		if (GUI.Button (CreateRect (ref curX, curY, nWidth / 2 - 6), "保存")) {
+			ChangeList (true);
+		}
+		if (GUI.Button (CreateRect (ref curX, curY, nWidth / 2 - 6), "删除")) {
+			ChangeList (false);
+		}
+
+		NextLine (ref curX, ref curY, 30, nInitX + 2);
+		if (GUI.Button (CreateRect (ref curX, curY, nWidth / 2 - 6), "运行动画")) {
+			PreInit ();
+			isRunning = true;
+		}
+		if (GUI.Button (CreateRect (ref curX, curY, nWidth / 2 - 6), "清空动画")) {
+			m_list.Clear ();
+			m_queue.Clear ();
+			isRunning = false;
+		}
+	}
+
+	void ChangeList(bool isAdd){
+		int _curFrame = EDT_Line.curFrame;
+		EDT_CGCamera val = GetCGCameraByFrame (_curFrame);
+		if (isAdd) {
+			if (val == null) {
+				val = new EDT_CGCamera ();
+				m_list.Add (val);
+			}
+			val.SetFrame (_curFrame);
+			val.m_angleHorizontal = m_angleHorizontal;
+			val.m_angleVertical = m_angleVertical;
+			val.m_distance = m_distance;
+			val.m_offsetY = m_offsetY;
+			val.m_fov = m_fov;
+		} else {
+			if (val != null) {
+				m_list.Remove (val);
+			}
+		}
+	}
+	#endregion
+
+	// 摄像机目标对象
+	Transform m_trsfCameraTarget;
 
 	Queue<EDT_CGCamera> m_queue = new Queue<EDT_CGCamera>();
 
 	EDT_CGCamera begData,nextData;
 
-	public float m_angleHorizontal = 0;
-	public float m_angleVertical = 0;
-	public float m_distance = 0;
-	public float m_offsetY = 0;
+	public float m_angleHorizontal = 60;
+	public float m_angleVertical = 30;
+	public float m_distance = 1;
+	public float m_offsetY = 0.5f;
 	public float m_fov = 60;
 
 	bool isInit = false;
+
+	EN_Time m_time = new EN_Time();
+
+	Vector3 cameraTargetPos{
+		get{
+			if (m_trsfCameraTarget) {
+				return m_trsfCameraTarget.position;
+			}
+			return Vector3.forward;
+		}
+	}
+
+	public void PreInit(){
+		m_list.Sort (m_sort);
+		m_queue.Clear ();
+		for (int i = 0; i < m_list.Count; i++) {
+			m_queue.Enqueue (m_list [i]);
+		}
+		m_time.Reset ();
+
+		Init ();
+	}
 
 	public void Init(){
 		if (m_queue.Count <= 1)
@@ -68,11 +234,18 @@ public class EG_SkillCGCamera{
 		m_offsetY = begData.m_offsetY;
 		m_fov = begData.m_fov;
 
-		Calc (m_trsfCamera, Vector3.forward);
+		Calc (m_trsfCamera, cameraTargetPos);
 	}
 
-	public void OnUpdate(float timeSecond){
-		if (!isInit)
+	void OnUpdate(){
+		if (!isInit || !isRunning)
+			return;
+		m_time.OnUpdateTime ();
+		OnUpdate (m_time.progressTime);
+	}
+
+	void OnUpdate(float timeSecond){
+		if (!isInit || !isRunning)
 			return;
 		
 		int _curFrame = EDT_CGCamera.ToFrame (timeSecond);
@@ -94,7 +267,7 @@ public class EG_SkillCGCamera{
 		m_offsetY = Mathf.Lerp(begData.m_offsetY,nextData.m_offsetY,lerpTime);
 		m_fov = Mathf.Lerp(begData.m_fov,nextData.m_fov,lerpTime);
 
-		Calc (m_trsfCamera, Vector3.forward);
+		Calc (m_trsfCamera, cameraTargetPos);
 	}
 
 	/// <summary>
@@ -102,13 +275,13 @@ public class EG_SkillCGCamera{
 	/// </summary>
 	public void Calc(Transform trsfCamera,Vector3 cameraTargetPos){
 
-		float fPitch = m_angleVertical * Mathf.PI / 180f;
-		float fYaw = m_angleHorizontal * Mathf.PI / 180f;
+		float fPitch = m_angleVertical * Mathf.Deg2Rad;
+		float fYaw = m_angleHorizontal * Mathf.Deg2Rad;
 
 		Vector3 vPos = cameraTargetPos;
-		vPos.x += m_distance * Mathf.Sin (fPitch) * Mathf.Cos (fYaw);
-		vPos.y += m_distance * Mathf.Cos (fPitch) + m_offsetY;
-		vPos.z += m_distance * Mathf.Sin (fPitch) * Mathf.Sin (fYaw);
+		vPos.x += m_distance * Mathf.Cos (fPitch) * Mathf.Cos (fYaw);
+		vPos.y += m_distance * Mathf.Sin (fPitch) + m_offsetY;
+		vPos.z += m_distance * Mathf.Cos (fPitch) * Mathf.Sin (fYaw);
 
 		trsfCamera.position = vPos;
 

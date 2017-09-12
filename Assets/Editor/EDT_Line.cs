@@ -74,6 +74,17 @@ public class EDT_Line {
 	public virtual string ToStrVal(){
 		return "";
 	}
+
+	public EDT_Line(){
+	}
+
+	public EDT_Line(int frame){
+		SetFrame (frame);
+	}
+
+	public EDT_Line(float second){
+		SetTime (second);
+	}
 }
 
 /// <summary>
@@ -144,8 +155,8 @@ public class EDT_CGCamera : EDT_Line{
 	/// </summary>
 	public void Calc(Transform trsfCamera,Vector3 cameraTargetPos){
 
-		float fPitch = m_angleVertical * Mathf.PI / 180f;
-		float fYaw = m_angleHorizontal * Mathf.PI / 180f;
+		float fPitch = m_angleVertical * Mathf.Deg2Rad;
+		float fYaw = m_angleHorizontal * Mathf.Deg2Rad;
 
 		Vector3 vPos = cameraTargetPos;
 		vPos.x += m_distance * Mathf.Sin (fPitch) * Mathf.Cos (fYaw);
@@ -156,5 +167,35 @@ public class EDT_CGCamera : EDT_Line{
 
 		cameraTargetPos.y += m_offsetY;
 		trsfCamera.LookAt (cameraTargetPos);
+	}
+
+	/// <summary>
+	/// 核心计算方法 - 正确的三角函数算法
+	/// </summary>
+	public void CalcTriangle(Transform trsfCamera,Vector3 cameraTargetPos){
+
+		float fPitch = m_angleVertical * Mathf.Deg2Rad;
+		float fYaw = m_angleHorizontal * Mathf.Deg2Rad;
+
+		Vector3 vPos = cameraTargetPos;
+		vPos.x += m_distance * Mathf.Cos (fPitch) * Mathf.Cos (fYaw);
+		vPos.y += m_distance * Mathf.Sin (fPitch) + m_offsetY;
+		vPos.z += m_distance * Mathf.Cos (fPitch) * Mathf.Sin (fYaw);
+
+		trsfCamera.position = vPos;
+
+		cameraTargetPos.y += m_offsetY;
+		trsfCamera.LookAt (cameraTargetPos);
+	}
+
+	public EDT_CGCamera(){
+	}
+
+	public EDT_CGCamera(int frame,float angleX,float angleY,float distance,float offsetY,float fov):base(frame){
+		this.m_angleHorizontal = angleX;
+		this.m_angleVertical = angleY;
+		this.m_distance = distance;
+		this.m_offsetY = offsetY;
+		this.m_fov = fov;
 	}
 }

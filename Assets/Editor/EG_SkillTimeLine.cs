@@ -135,6 +135,7 @@ public class EG_SkillTimeLine{
 		EDT_Line.curFrame = Mathf.Min (EDT_Line.curFrame, allNumFrames);
 		if (_preFrame != EDT_Line.curFrame) {
 			// 通知滚动列表移动到当前帧对象去
+			// Messenger.Brocast(MsgConst.CurrFrame2TimeLineScrollPos);
 		}
 
 		GUI.Label (CreateRect (ref curX, curY, 60), "帧数/格子:");
