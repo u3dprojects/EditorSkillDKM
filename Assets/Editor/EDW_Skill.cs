@@ -89,11 +89,15 @@ public class EDW_Skill : EditorWindow
     void OnEnable()
     {
         EditorApplication.update += OnUpdate;
+		SceneView.onSceneGUIDelegate += OnSceneGUI;
+		Messenger.AddListener (MsgConst.OnRepantEditorWindow, CallFuncRepaint);
     }
 
     void OnDisable()
     {
         EditorApplication.update -= OnUpdate;
+		SceneView.onSceneGUIDelegate -= OnSceneGUI;
+		Messenger.RemoveListener (MsgConst.OnRepantEditorWindow, CallFuncRepaint);
     }
 
     void OnGUI()
@@ -157,6 +161,26 @@ public class EDW_Skill : EditorWindow
     {
 		Messenger.Brocast (MsgConst.OnClear);
     }
+
+	float disCaster = 10;
+	float disMove = 5;
+	void OnSceneGUI(SceneView sceneView){
+		Vector3 start = Vector3.zero;
+		start.y = 0;
+		Vector3 dir = Vector3.forward;
+
+		EG_HandlesHelper.AreaType areaType = EG_HandlesHelper.AreaType.Arc;
+		float otherVal = 60;
+		if(areaType == EG_HandlesHelper.AreaType.Rectangle){
+			otherVal = 5;
+		}
+
+		EG_HandlesHelper.Draw (ref disMove, ref disCaster, start,dir,areaType,otherVal);
+	}
+
+	void CallFuncRepaint(){
+		OnInspectorUpdate ();
+	}
     #endregion
 
 	#region  == GUI Draw Func ===
@@ -362,4 +386,8 @@ public class EDW_Skill : EditorWindow
 		}
 	}
 	#endregion
+}
+
+public partial class MsgConst{
+	public const string OnRepantEditorWindow = "Msg_OnRepantEditorWindow";
 }

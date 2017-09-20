@@ -236,9 +236,15 @@ public partial class MsgConst{
 	// 清除 (无参数)
 	public const string OnClear = "Msg_OnClear";
 
-	// 更新(一个参数:[delta or time.realtimeSinceStartup]
-	public const string OnUpdateTime1 = "Msg_OnUpdateTime1";
+	// 更新(一个参数:[delta]
+	public const string OnUpdateTimeDelta = "Msg_OnUpdateTimeDelta";
 
-	// 更新(两个参数:[delta,progress or time.realtimeSinceStartup]
-	public const string OnUpdateTime2 = "Msg_OnUpdateTime2";
+	// 更新(一个参数:[time.realtimeSinceStartup]
+	public const string OnUpdateTimeRealtime = "Msg_OnUpdateTimeRealtime";
+
+	// 更新(两个参数:[delta,progress]
+	public const string OnUpdateTimeDeltaProgress = "Msg_OnUpdateTimeDeltaProgress";
+
+	// 更新(两个参数:[delta,time.realtimeSinceStartup]
+	public const string OnUpdateTimeDeltaRealtime = "Msg_OnUpdateTimeDeltaRealtime";
 }
