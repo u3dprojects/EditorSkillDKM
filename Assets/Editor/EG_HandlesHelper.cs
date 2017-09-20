@@ -192,15 +192,30 @@ public class EG_HandlesHelper
 		Handles.color = m_colArea;
 
 		Vector3 pos = Vector3.zero;
+		Vector3 v3NewPos = Vector3.zero;
 		Quaternion quaternion = Quaternion.AngleAxis (0, upDir);
 		switch (_emType) {
 		case AreaType.Circle:
 			Handles.DrawSolidDisc(v3Start,upDir,range);
 			break;
 		case AreaType.Arc:
-			pos = Quaternion.AngleAxis (-1 * val * 0.5f, upDir) * v3Dir;
+			float hfAngle = -1 * val * 0.5f;
+			pos = Quaternion.AngleAxis (hfAngle, upDir) * v3Dir;
 			pos.Normalize ();
 			Handles.DrawSolidArc (v3Start, upDir, pos, val, range);
+
+			Handles.color = Color.cyan;
+			pos = v3Start + pos * range;
+			Handles.Label (pos, string.Format ("半径:{0:F},夹度:{1:F}", range, val));
+			v3NewPos = Handles.FreeMoveHandle (pos, Quaternion.identity, HandleUtility.GetHandleSize (pos) * 0.1f, Vector3.zero, Handles.CircleCap);
+
+			pos = RotateByY (v3Dir, hfAngle * -1);
+			pos.Normalize ();
+			pos = v3Start + pos * range;
+			Handles.Label (pos, string.Format ("半径:{0:F},夹度:{1:F}", range, val));
+			v3NewPos = Handles.FreeMoveHandle (pos, Quaternion.identity, HandleUtility.GetHandleSize (pos) * 0.1f, Vector3.zero, Handles.CircleCap);
+			float a = Mathf.Abs (Mathf.Acos (Vector3.Dot (v3Dir, v3NewPos - v3Start)) * Mathf.Rad2Deg);
+			parms[1] = a * 2;
 			break;
 		case AreaType.Rectangle:
 			float hfw = val * 0.5f;
