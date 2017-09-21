@@ -165,12 +165,11 @@ public class EDW_Skill : EditorWindow
 	float disCaster = 10;
 	float disMove = 5;
 	float otherVal = 60;
+	EG_HandlesHelper.AreaType areaType = EG_HandlesHelper.AreaType.Arc;
 	void OnSceneGUI(SceneView sceneView){
 		Vector3 start = Vector3.zero;
 		start.y = 0;
 		Vector3 dir = Vector3.forward;
-
-		EG_HandlesHelper.AreaType areaType = EG_HandlesHelper.AreaType.Arc;
 		EG_HandlesHelper.Draw (ref disMove, ref disCaster, start,dir,ref otherVal,areaType);
 	}
 
@@ -357,7 +356,7 @@ public class EDW_Skill : EditorWindow
 
 	#region == 绘制右边 ==
 	int m_rtBarIndex = 0;
-	string[] m_rtBarTitles = { "技能表", "CGCamera", "bar3", "bar4" };
+	string[] m_rtBarTitles = { "技能表", "CGCamera", "区域控制", "bar4" };
 	EG_SkillCGCamera m_cgCamera = new EG_SkillCGCamera();
 
 	void _DrawRight(){
@@ -376,6 +375,15 @@ public class EDW_Skill : EditorWindow
 		switch (m_rtBarIndex) {
 		case 1:
 			m_cgCamera.DrawView (ref curX, ref curY, rightWidth, height);
+			break;
+		case 2:
+			NextLine (ref curX, ref curY, 5, initX);
+			GUI.Label (CreateRect (ref curX, curY, 60), "区域模式:");
+			EG_HandlesHelper.AreaType preAreaType = areaType;
+			areaType = (EG_HandlesHelper.AreaType)EditorGUI.EnumPopup (CreateRect (ref curX, curY, rightWidth - 66, 60), (System.Enum)areaType);
+			if (preAreaType != areaType) {
+				SceneView.RepaintAll ();
+			}
 			break;
 		default:
 			break;
