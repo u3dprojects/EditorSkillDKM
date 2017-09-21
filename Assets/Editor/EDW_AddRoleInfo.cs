@@ -138,6 +138,69 @@ public class EDW_AddRoleInfo : EditorWindow
 			m_data.m_id = m_id;
 		}
 	}
+
+	public void LoadObj(int id,ref GameObject gobj,string name){
+		ED_RoleInfo info = GetByID (id);
+		if (info == null) {
+			EditorUtility.DisplayDialog ("提示", "请选择有效的角色信息", "确定");
+			return;
+		}
+
+		if (gobj != null)
+			GameObject.Destroy (gobj);
+
+		gobj = new GameObject (name);
+
+		GameObject gobjBody;
+		Dictionary<string,Transform> boneMap = GetBones (gobjBody, null);
+	}
+
+	public Dictionary<string,Transform> GetBones(GameObject gobj,Dictionary<string,Transform> dic){
+		if (dic == null) {
+			dic = new Dictionary<string, Transform> ();
+		}
+		dic.Clear ();
+
+		Transform[] trsfArrs = gobj.GetComponentsInChildren<Transform> (true);
+		int lens = trsfArrs.Length;
+		Transform trsf;
+		for (int i = 0; i < lens; i++) {
+			trsf = trsfArrs [i];
+			if (!dic.ContainsKey (trsf.name)) {
+				dic.Add (trsf.name, trsf);
+			}
+		}
+		return dic;
+	}
+
+	public void ReBindBones(GameObject gobj,Dictionary<string,Transform> dic){
+		SkinnedMeshRenderer[] skinArrs = gobj.GetComponentsInChildren<SkinnedMeshRenderer> (true);
+		int lens = skinArrs.Length;
+		SkinnedMeshRenderer skin;
+		List<Transform> trsfBones = new List<Transform> ();
+		string keyBone = "";
+		for (int i = 0; i < lens; i++) {
+			skin = skinArrs [i];
+			if (skin.rootBone != null) {
+				keyBone = skin.rootBone.name;
+				if (dic.ContainsKey (keyBone)) {
+					skin.rootBone = dic [keyBone];
+				}
+			}
+			if (skin.bones != null) {
+				trsfBones.Clear ();
+				int lensBone = skin.bones.Length;
+				for (int j = 0; j < lensBone; j++) {
+					keyBone = skin.bones[i].name;
+					if (dic.ContainsKey (keyBone)) {
+						trsfBones.Add(dic [keyBone]);
+					}
+				}
+				skin.bones = trsfBones.ToArray ();
+			}
+		}
+	}
+
     #endregion
 
 	void _DrawView(){
