@@ -77,7 +77,7 @@ public class EG_HandlesHelper
 	/// <param name="disMove">位移距离</param>
 	/// <param name="disCaster">释放距离</param>
 	/// <param name="v3Start">V3 start.</param>
-	static public void Draw (ref float disMove,ref float disCaster, Vector3 v3Start,Vector3 v3Dir, params object[] parms)
+	static public void Draw (ref float disMove,ref float disCaster, Vector3 v3Start,Vector3 v3Dir,ref float valOther,AreaType areaType = AreaType.None)
 	{
 		Handles.BeginGUI ();
 
@@ -161,7 +161,7 @@ public class EG_HandlesHelper
 			Messenger.Brocast (MsgConst.OnRepantEditorWindow);
 		}
 
-		DrawArea (v3Target, v3Dir,disCaster, parms);
+		DrawArea (v3Target, v3Dir,disCaster, ref valOther,areaType);
 
 		Handles.color = _def;
 		Handles.EndGUI ();
@@ -173,51 +173,28 @@ public class EG_HandlesHelper
 	/// <param name="v3Start">开始点</param>
 	/// <param name="v3Dir">结束点</param>
 	/// <param name="parms">第一个标识,</param>
-	static void DrawArea(Vector3 v3Start,Vector3 v3Dir,float range,params object[] parms){
-		if (parms == null)
+	static void DrawArea(Vector3 v3Start,Vector3 v3Dir,float range,ref float val,AreaType areaType = AreaType.None){
+		if (areaType == AreaType.None || (areaType == AreaType.Circle && val == 0))
 			return;
-		int lens = parms.Length;
-		if (lens <= 0 || range <= 0)
-			return;
-
-		Vector3 upDir = Vector3.up;
-
-		AreaType _emType = (AreaType)System.Enum.Parse (typeof(AreaType),parms [0].ToString (), true);
-
-		float val = 0;
-		if (parms.Length >= 2) {
-			val = (float)parms [1];
-		}
 
 		Handles.color = m_colArea;
-
+		Vector3 dirNormal = Vector3.up;
 		Vector3 pos = Vector3.zero;
-		Vector3 v3NewPos = Vector3.zero;
-		Quaternion quaternion = Quaternion.AngleAxis (0, upDir);
-		switch (_emType) {
+		switch (areaType) {
 		case AreaType.Circle:
-			Handles.DrawSolidDisc(v3Start,upDir,range);
+			Handles.DrawSolidDisc(v3Start,dirNormal,range);
 			break;
 		case AreaType.Arc:
 			float hfAngle = -1 * val * 0.5f;
-			pos = Quaternion.AngleAxis (hfAngle, upDir) * v3Dir;
+			pos = Quaternion.AngleAxis (hfAngle, dirNormal) * v3Dir;
 			pos.Normalize ();
-			Handles.DrawSolidArc (v3Start, upDir, pos, val, range);
+			Handles.DrawSolidArc (v3Start, dirNormal, pos, val, range);
 
-			Handles.color = Color.cyan;
-			pos = v3Start + pos * range;
-			Handles.Label (pos, string.Format ("半径:{0:F},夹度:{1:F}", range, val));
-			v3NewPos = Handles.FreeMoveHandle (pos, Quaternion.identity, HandleUtility.GetHandleSize (pos) * 0.1f, Vector3.zero, Handles.CircleCap);
-
-			pos = RotateByY (v3Dir, hfAngle * -1);
-			pos.Normalize ();
-			pos = v3Start + pos * range;
-			Handles.Label (pos, string.Format ("半径:{0:F},夹度:{1:F}", range, val));
-			v3NewPos = Handles.FreeMoveHandle (pos, Quaternion.identity, HandleUtility.GetHandleSize (pos) * 0.1f, Vector3.zero, Handles.CircleCap);
-			float a = Mathf.Abs (Mathf.Acos (Vector3.Dot (v3Dir, v3NewPos - v3Start)) * Mathf.Rad2Deg);
-			parms[1] = a * 2;
+			DrawArcVertex (v3Start, v3Dir, range, ref val);
+			DrawArcVertex (v3Start, v3Dir, range, ref val, false);
 			break;
 		case AreaType.Rectangle:
+			Quaternion quaternion = Quaternion.AngleAxis (0, dirNormal);
 			float hfw = val * 0.5f;
 			float hfl = range * 0.5f;
 			float hfr = Mathf.Sqrt(Mathf.Pow(range,2)+Mathf.Pow(val,2)) * 0.5f;
@@ -246,6 +223,40 @@ public class EG_HandlesHelper
 			break;
 		default:
 			break;
+		}
+	}
+
+	/// <summary>
+	/// 绘制 - 扇形弧度的顶点
+	/// </summary>
+	/// <param name="v3Start">中心点</param>
+	/// <param name="v3Dir">中心方向</param>
+	/// <param name="range">半径</param>
+	/// <param name="val">角度,非弧度</param>
+	/// <param name="isStart">绘制是起点，还是重点</param>
+	static void DrawArcVertex(Vector3 v3Start,Vector3 v3Dir,float range,ref float val,bool isStart = true){
+		Vector3 v3NewPos = Vector3.zero;
+		float hfAngle = val * 0.5f;
+		if (isStart)
+			hfAngle = -1 * hfAngle;
+
+		// 等价于 Quaternion.AngleAxis (hfAngle, Vector3.up) * v3Dir;
+		Vector3 dirArcEdge = RotateByY (v3Dir, hfAngle); 
+		dirArcEdge.Normalize ();
+		Handles.color = Color.cyan;
+		Vector3 pos = v3Start + dirArcEdge * range;
+		Handles.DrawLine (v3Start, pos);
+		Handles.Label (pos, string.Format ("{2}_半径:{0:F},夹度:{1:F}", range, val,(isStart ? "s": "e")));
+		v3NewPos = Handles.FreeMoveHandle (pos, Quaternion.identity, HandleUtility.GetHandleSize (pos) * 0.1f, Vector3.zero, Handles.CircleCap);
+		if (!v3NewPos.Equals (pos)) {
+			Vector3 dir = v3NewPos - v3Start;
+			dir.y = v3Dir.y;
+			dir.Normalize ();
+			v3Dir.Normalize ();
+
+			float dot = Vector3.Dot (dir, v3Dir);
+			float a = Mathf.Acos (dot);
+			val = Mathf.Abs((a * Mathf.Rad2Deg) * 2);
 		}
 	}
 

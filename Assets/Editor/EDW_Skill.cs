@@ -164,18 +164,14 @@ public class EDW_Skill : EditorWindow
 
 	float disCaster = 10;
 	float disMove = 5;
+	float otherVal = 60;
 	void OnSceneGUI(SceneView sceneView){
 		Vector3 start = Vector3.zero;
 		start.y = 0;
 		Vector3 dir = Vector3.forward;
 
 		EG_HandlesHelper.AreaType areaType = EG_HandlesHelper.AreaType.Arc;
-		float otherVal = 60;
-		if(areaType == EG_HandlesHelper.AreaType.Rectangle){
-			otherVal = 5;
-		}
-
-		EG_HandlesHelper.Draw (ref disMove, ref disCaster, start,dir,areaType,otherVal);
+		EG_HandlesHelper.Draw (ref disMove, ref disCaster, start,dir,ref otherVal,areaType);
 	}
 
 	void CallFuncRepaint(){
