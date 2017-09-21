@@ -161,7 +161,7 @@ public class EG_HandlesHelper
 			Messenger.Brocast (MsgConst.OnRepantEditorWindow);
 		}
 
-		DrawArea (v3Target, v3Dir,disCaster, ref valOther,areaType);
+		DrawArea (v3Target, v3Dir,ref disCaster, ref valOther,areaType);
 
 		Handles.color = _def;
 		Handles.EndGUI ();
@@ -173,18 +173,19 @@ public class EG_HandlesHelper
 	/// <param name="v3Start">开始点</param>
 	/// <param name="v3Dir">结束点</param>
 	/// <param name="parms">第一个标识,</param>
-	static void DrawArea(Vector3 v3Start,Vector3 v3Dir,float range,ref float val,AreaType areaType = AreaType.None){
+	static void DrawArea(Vector3 v3Start,Vector3 v3Dir,ref float range,ref float val,AreaType areaType = AreaType.None){
 		if (areaType == AreaType.None || (areaType == AreaType.Circle && val == 0))
 			return;
 
-		Handles.color = m_colArea;
 		Vector3 dirNormal = Vector3.up;
 		Vector3 pos = Vector3.zero;
 		switch (areaType) {
 		case AreaType.Circle:
+			Handles.color = m_colArea;
 			Handles.DrawSolidDisc(v3Start,dirNormal,range);
 			break;
 		case AreaType.Arc:
+			Handles.color = m_colArea;
 			float hfAngle = -1 * val * 0.5f;
 			pos = Quaternion.AngleAxis (hfAngle, dirNormal) * v3Dir;
 			pos.Normalize ();
@@ -194,32 +195,40 @@ public class EG_HandlesHelper
 			DrawArcVertex (v3Start, v3Dir, range, ref val, false);
 			break;
 		case AreaType.Rectangle:
-			Quaternion quaternion = Quaternion.AngleAxis (0, dirNormal);
 			float hfw = val * 0.5f;
 			float hfl = range * 0.5f;
-			float hfr = Mathf.Sqrt(Mathf.Pow(range,2)+Mathf.Pow(val,2)) * 0.5f;
-			pos = v3Start;
+			float hfr = Mathf.Sqrt (Mathf.Pow (range, 2) + Mathf.Pow (val, 2)) * 0.5f;
 
-			Vector3 pos01 = new Vector3(pos.x - hfw,0,pos.z - hfl);
-			Vector3 pos1 = quaternion * pos01.normalized * hfr;
+			Quaternion quaternion = Quaternion.AngleAxis (0, v3Dir);
+			Vector3 nwDir = RotateYNormal (v3Dir, 0);
+			pos = v3Start +  nwDir * hfl; // 中心点
+
+			Vector3 pos1 = new Vector3 (pos.x - hfw, 0, pos.z - hfl);
+			pos1 = quaternion * ((pos1 - pos).normalized) * hfr + pos;
 			pos1.y = pos.y;
 
-			Vector3 pos02 = new Vector3(pos.x - hfw,0,pos.z + hfl);
-			Vector3 pos2 = quaternion * pos02.normalized * hfr;
+			Vector3 pos2 = new Vector3 (pos.x - hfw, 0, pos.z + hfl);
+			pos2 = quaternion * ((pos2 - pos).normalized) * hfr + pos;
 			pos2.y = pos.y;
 
-			Vector3 pos03 = new Vector3(pos.x + hfw,0,pos.z + hfl);
-			Vector3 pos3 = quaternion * pos03.normalized * hfr;
+			Vector3 pos3 = new Vector3 (pos.x + hfw, 0, pos.z + hfl);
+			pos3 = quaternion * ((pos3 - pos).normalized) * hfr + pos;
 			pos3.y = pos.y;
 
-			Vector3 pos04 = new Vector3(pos.x + hfw,0,pos.z - hfl);
-			Vector3 pos4 = quaternion * pos04.normalized * hfr;
+			Vector3 pos4 = new Vector3 (pos.x + hfw, 0, pos.z - hfl);
+			pos4 = quaternion * ((pos4 - pos).normalized) * hfr + pos;
 			pos4.y = pos.y;
 
 			Vector3[] verts = new Vector3[] { 
-				pos1,pos2,pos3,pos4
+				pos1, pos2, pos3, pos4
 			};
-			Handles.DrawSolidRectangleWithOutline(verts,m_colArea, new Color( 0, 0, 0, 1 ));
+
+			Handles.DrawSolidRectangleWithOutline (verts, m_colArea, new Color (0, 0, 0, 1));
+
+			DrawRectVertex (1, ref range,ref val, pos1, pos2,(pos1 - pos));
+			DrawRectVertex (2, ref range,ref val, pos2, pos3,(pos2 - pos));
+			DrawRectVertex (3, ref range,ref val, pos3, pos4,(pos3 - pos));
+			DrawRectVertex (4, ref range,ref val, pos4, pos1,(pos4 - pos));
 			break;
 		default:
 			break;
@@ -232,21 +241,20 @@ public class EG_HandlesHelper
 	/// <param name="v3Start">中心点</param>
 	/// <param name="v3Dir">中心方向</param>
 	/// <param name="range">半径</param>
-	/// <param name="val">角度,非弧度</param>
+	/// <param name="angle">角度,非弧度</param>
 	/// <param name="isStart">绘制是起点，还是重点</param>
-	static void DrawArcVertex(Vector3 v3Start,Vector3 v3Dir,float range,ref float val,bool isStart = true){
+	static void DrawArcVertex(Vector3 v3Start,Vector3 v3Dir,float range,ref float angle,bool isStart = true){
 		Vector3 v3NewPos = Vector3.zero;
-		float hfAngle = val * 0.5f;
+		float hfAngle = angle * 0.5f;
 		if (isStart)
 			hfAngle = -1 * hfAngle;
 
 		// 等价于 Quaternion.AngleAxis (hfAngle, Vector3.up) * v3Dir;
-		Vector3 dirArcEdge = RotateByY (v3Dir, hfAngle); 
-		dirArcEdge.Normalize ();
+		Vector3 dirArcEdge = RotateYNormal (v3Dir, hfAngle);
 		Handles.color = Color.cyan;
 		Vector3 pos = v3Start + dirArcEdge * range;
 		Handles.DrawLine (v3Start, pos);
-		Handles.Label (pos, string.Format ("{2}_半径:{0:F},夹度:{1:F}", range, val,(isStart ? "s": "e")));
+		Handles.Label (pos, string.Format ("{2}_半径:{0:F},夹度:{1:F}", range, angle,(isStart ? "s": "e")));
 		v3NewPos = Handles.FreeMoveHandle (pos, Quaternion.identity, HandleUtility.GetHandleSize (pos) * 0.1f, Vector3.zero, Handles.CircleCap);
 		if (!v3NewPos.Equals (pos)) {
 			Vector3 dir = v3NewPos - v3Start;
@@ -256,7 +264,34 @@ public class EG_HandlesHelper
 
 			float dot = Vector3.Dot (dir, v3Dir);
 			float a = Mathf.Acos (dot);
-			val = Mathf.Abs((a * Mathf.Rad2Deg) * 2);
+			angle = Mathf.Abs((a * Mathf.Rad2Deg) * 2);
+		}
+	}
+
+	static void DrawRectVertex(int posIndex,ref float range ,ref float width ,Vector3 posStart,Vector3 posEnd,Vector3 v3Dir){
+		Handles.color = Color.cyan;
+		Handles.DrawLine (posStart, posEnd);
+		Handles.Label (posStart, string.Format ("{0}_长:{1:F},宽:{2:F}",posIndex, range, width));
+		Vector3 v3NewPos = Handles.FreeMoveHandle (posStart, Quaternion.identity, HandleUtility.GetHandleSize (posStart) * 0.1f, Vector3.zero, Handles.CircleCap);
+		if (!v3NewPos.Equals (posStart)) {
+			float dis = Vector3.Distance (v3NewPos, posEnd);
+			switch (posIndex) {
+			case 1:
+			case 3:
+				range = dis;
+				break;
+			default:
+				width = dis;
+				break;
+			}
+
+//			Vector3 dir = v3NewPos - posStart;
+//			dir.y = v3Dir.y;
+//			if (Mathf.Abs (dir.x) > Mathf.Abs (dir.z)) {
+//				width = dis;
+//			} else {
+//				range = dis;
+//			}
 		}
 	}
 
@@ -284,6 +319,11 @@ public class EG_HandlesHelper
 		return target;
 	}
 
+	static Vector3 RotateYNormal(Vector3 src,float angle){
+		Vector3 rPos = RotateY (src, angle);
+		return rPos.normalized;
+	}
+
 	/// <summary>
 	/// unity 自带的算法
 	/// RotateY + RotateByY = Vector3.zero,在参数相同的情况下
@@ -294,6 +334,11 @@ public class EG_HandlesHelper
 	static Vector3 RotateByY(Vector3 src,float angle){
 		// Quaternion.AngleAxis(angle,Vector3.up) == Quaternion.Euler(0,angle,0);
 		return Quaternion.Euler(0,angle,0) * src;
+	}
+
+	static Vector3 RotateByYNormal(Vector3 src,float angle){
+		Vector3 rPos = RotateByY (src, angle);
+		return rPos.normalized;
 	}
 
 	static float Dir2Radian(Vector3 dir){
