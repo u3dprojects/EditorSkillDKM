@@ -151,11 +151,11 @@ public class EDW_AddRoleInfo : EditorWindow
 
 		gobj = new GameObject (name);
 
-		GameObject gobjBody;
-		Dictionary<string,Transform> boneMap = GetBones (gobjBody, null);
+		// GameObject gobjBody;
+		Dictionary<string,Transform> boneMap = GetBones (gobj);
 	}
 
-	public Dictionary<string,Transform> GetBones(GameObject gobj,Dictionary<string,Transform> dic){
+	public Dictionary<string,Transform> GetBones(GameObject gobj,Dictionary<string,Transform> dic = null){
 		if (dic == null) {
 			dic = new Dictionary<string, Transform> ();
 		}

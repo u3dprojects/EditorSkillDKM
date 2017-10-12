@@ -271,7 +271,14 @@ public class EG_HandlesHelper
 	static void DrawRectVertex(int posIndex,ref float range ,ref float width ,Vector3 posStart,Vector3 posEnd,Vector3 v3Dir){
 		Handles.color = Color.cyan;
 		Handles.DrawLine (posStart, posEnd);
-		Handles.Label (posStart, string.Format ("{0}_长:{1:F},宽:{2:F}",posIndex, range, width));
+		string valStr = "";
+		if (posIndex == 1 || posIndex == 3) {
+			// valStr = string.Format ("{0}_长:{1:F},宽:{2:F}", posIndex, range, width);
+			valStr = string.Format ("{0}_长:{1:F}", posIndex, range);
+		} else {
+			valStr = string.Format ("{0}_宽:{1:F}", posIndex, width);
+		}
+		Handles.Label (posStart, valStr);
 		Vector3 v3NewPos = Handles.FreeMoveHandle (posStart, Quaternion.identity, HandleUtility.GetHandleSize (posStart) * 0.1f, Vector3.zero, Handles.CircleCap);
 		if (!v3NewPos.Equals (posStart)) {
 			float dis = Vector3.Distance (v3NewPos, posEnd);
